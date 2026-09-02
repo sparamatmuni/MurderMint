@@ -1,42 +1,39 @@
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, Easing } from "remotion";
 
+const FONT_BRAND = "'Cinzel Decorative', 'Cinzel', serif";
+const FONT_ANTIQUE = "'IM Fell English', 'Cormorant Garamond', Georgia, serif";
+
 export const CTAScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   // Logo scale entrance
-  const logoScale = interpolate(frame, [0, 1 * fps], [0.5, 1], {
+  const logoScale = interpolate(frame, [0, 1.5 * fps], [0.6, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const logoOpacity = interpolate(frame, [0, 0.8 * fps], [0, 1], {
+  const logoOpacity = interpolate(frame, [0, 1 * fps], [0, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
   });
 
   // Tagline
-  const tagOpacity = interpolate(frame, [1 * fps, 2 * fps], [0, 1], {
+  const tagOpacity = interpolate(frame, [1.5 * fps, 2.5 * fps], [0, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
   });
 
-  const tagY = interpolate(frame, [1 * fps, 2 * fps], [20, 0], {
+  const tagY = interpolate(frame, [1.5 * fps, 2.5 * fps], [20, 0], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
   // CTA button
-  const ctaOpacity = interpolate(frame, [2.5 * fps, 3.5 * fps], [0, 1], {
+  const ctaOpacity = interpolate(frame, [3 * fps, 4 * fps], [0, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
   });
 
-  const ctaScale = interpolate(frame, [2.5 * fps, 3.5 * fps], [0.8, 1], {
+  const ctaScale = interpolate(frame, [3 * fps, 4 * fps], [0.8, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
@@ -49,23 +46,28 @@ export const CTAScene: React.FC = () => {
   );
 
   // Gold particles
-  const particles = Array.from({ length: 20 }, (_, i) => {
-    const angle = (i / 20) * Math.PI * 2;
-    const radius = interpolate(frame, [0.5 * fps, 2 * fps], [0, 300 + (i % 3) * 50], {
+  const particles = Array.from({ length: 25 }, (_, i) => {
+    const angle = (i / 25) * Math.PI * 2;
+    const radius = interpolate(frame, [0.5 * fps, 2.5 * fps], [0, 350 + (i % 4) * 60], {
       extrapolateRight: "clamp",
       extrapolateLeft: "clamp",
     });
-    const opacity = interpolate(frame, [0.5 * fps, 1 * fps, 2.5 * fps, 3 * fps], [0, 0.6, 0.6, 0], {
+    const opacity = interpolate(frame, [0.5 * fps, 1.2 * fps, 3 * fps, 4 * fps], [0, 0.7, 0.7, 0], {
       extrapolateRight: "clamp",
       extrapolateLeft: "clamp",
     });
-    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, opacity, size: 3 + (i % 4) };
+    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, opacity, size: 3 + (i % 5) };
+  });
+
+  // URL
+  const urlOpacity = interpolate(frame, [5 * fps, 6 * fps], [0, 1], {
+    extrapolateRight: "clamp",
   });
 
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#0a0705",
+        backgroundColor: "#120B07",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -75,10 +77,20 @@ export const CTAScene: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          width: "800px",
-          height: "800px",
+          inset: 0,
+          background: "radial-gradient(ellipse at center, #1E140D 0%, #120B07 70%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Warm candle glow */}
+      <div
+        style={{
+          position: "absolute",
+          width: "1000px",
+          height: "1000px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(201,151,56,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(201,151,56,0.08) 0%, transparent 60%)",
           pointerEvents: "none",
         }}
       />
@@ -96,6 +108,7 @@ export const CTAScene: React.FC = () => {
             opacity: p.opacity,
             transform: `translate(${p.x}px, ${p.y}px)`,
             pointerEvents: "none",
+            boxShadow: "0 0 6px rgba(212,175,55,0.6)",
           }}
         />
       ))}
@@ -108,7 +121,7 @@ export const CTAScene: React.FC = () => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          textAlign: "center",
+          textAlign: "center" as const,
         }}
       >
         {/* Logo */}
@@ -116,12 +129,12 @@ export const CTAScene: React.FC = () => {
           style={{
             opacity: logoOpacity,
             transform: `scale(${logoScale})`,
-            fontSize: "120px",
-            fontWeight: 900,
+            fontSize: "140px",
+            fontWeight: 400,
             color: "#F7EFE2",
-            fontFamily: "Georgia, serif",
-            letterSpacing: "12px",
-            textShadow: "0 4px 40px rgba(201,151,56,0.5)",
+            fontFamily: FONT_BRAND,
+            letterSpacing: "16px",
+            textShadow: "0 4px 60px rgba(201,151,56,0.3), 0 0 120px rgba(0,0,0,0.8)",
             lineHeight: 1,
           }}
         >
@@ -133,11 +146,11 @@ export const CTAScene: React.FC = () => {
           style={{
             opacity: tagOpacity,
             transform: `translateY(${tagY}px)`,
-            marginTop: "32px",
-            fontSize: "28px",
+            marginTop: "40px",
+            fontSize: "34px",
             fontStyle: "italic",
             color: "#D4AF37",
-            fontFamily: "Georgia, serif",
+            fontFamily: FONT_ANTIQUE,
           }}
         >
           The classic murder mystery, reimagined.
@@ -147,10 +160,10 @@ export const CTAScene: React.FC = () => {
         <div
           style={{
             opacity: tagOpacity,
-            marginTop: "16px",
-            fontSize: "18px",
+            marginTop: "20px",
+            fontSize: "22px",
             color: "#BAAFA1",
-            fontFamily: "sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
           }}
         >
           Gather your detectives. Solve the case.
@@ -161,17 +174,17 @@ export const CTAScene: React.FC = () => {
           style={{
             opacity: ctaOpacity,
             transform: `scale(${ctaScale * pulseScale})`,
-            marginTop: "48px",
-            padding: "20px 64px",
-            borderRadius: "16px",
+            marginTop: "60px",
+            padding: "24px 80px",
+            borderRadius: "20px",
             backgroundColor: "#9B2226",
             border: "2px solid rgba(212,175,55,0.4)",
-            boxShadow: "0 0 40px rgba(155,34,38,0.5), 0 8px 32px rgba(0,0,0,0.4)",
-            fontSize: "24px",
-            fontWeight: 900,
+            boxShadow: "0 0 50px rgba(155,34,38,0.5), 0 8px 40px rgba(0,0,0,0.5)",
+            fontSize: "28px",
+            fontWeight: 400,
             color: "#F7EFE2",
-            fontFamily: "Georgia, serif",
-            letterSpacing: "4px",
+            fontFamily: FONT_BRAND,
+            letterSpacing: "6px",
             textTransform: "uppercase" as const,
           }}
         >
@@ -181,15 +194,12 @@ export const CTAScene: React.FC = () => {
         {/* URL */}
         <div
           style={{
-            opacity: interpolate(frame, [4 * fps, 5 * fps], [0, 1], {
-              extrapolateRight: "clamp",
-              extrapolateLeft: "clamp",
-            }),
-            marginTop: "24px",
-            fontSize: "16px",
+            opacity: urlOpacity,
+            marginTop: "30px",
+            fontSize: "18px",
             color: "#BAAFA1",
-            fontFamily: "monospace",
-            letterSpacing: "2px",
+            fontFamily: "'Special Elite', monospace",
+            letterSpacing: "3px",
           }}
         >
           murdermint.app
@@ -201,7 +211,7 @@ export const CTAScene: React.FC = () => {
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(ellipse at center, transparent 40%, rgba(10,7,5,0.7) 100%)",
+          background: "radial-gradient(ellipse at center, transparent 35%, #120B07 85%)",
           pointerEvents: "none",
         }}
       />

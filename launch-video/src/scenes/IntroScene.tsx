@@ -1,76 +1,110 @@
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, Easing, Img, staticFile } from "remotion";
 
+// Web app fonts: Cinzel Decorative for brand, IM Fell English for antique, DM Sans for body
+const FONT_BRAND = "'Cinzel Decorative', 'Cinzel', serif";
+const FONT_ANTIQUE = "'IM Fell English', 'Cormorant Garamond', Georgia, serif";
+
 export const IntroScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const bgOpacity = interpolate(frame, [0, 1.5 * fps], [0, 0.5], {
+  // Slow zoom on bungalow
+  const bgScale = interpolate(frame, [0, 13 * fps], [1, 1.15], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const glowScale = interpolate(
-    frame % (2 * fps),
-    [0, fps, 2 * fps],
-    [1, 1.3, 1],
+  const bgOpacity = interpolate(frame, [0, 2 * fps], [0, 0.7], {
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+
+  // Candle glow pulse
+  const glowOpacity = interpolate(
+    frame % (3 * fps),
+    [0, 1.5 * fps, 3 * fps],
+    [0.3, 0.6, 0.3],
     { extrapolateRight: "clamp" }
   );
 
-  const titleOpacity = interpolate(frame, [1 * fps, 2.5 * fps], [0, 1], {
+  // Title reveal with dramatic timing
+  const titleOpacity = interpolate(frame, [1.5 * fps, 3 * fps], [0, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const titleY = interpolate(frame, [1 * fps, 2.5 * fps], [40, 0], {
+  const titleY = interpolate(frame, [1.5 * fps, 3 * fps], [60, 0], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const subOpacity = interpolate(frame, [2.5 * fps, 4 * fps], [0, 1], {
+  const titleScale = interpolate(frame, [1.5 * fps, 3 * fps], [0.8, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const subY = interpolate(frame, [2.5 * fps, 4 * fps], [20, 0], {
+  // Subtitle
+  const subOpacity = interpolate(frame, [3.5 * fps, 5 * fps], [0, 1], {
     extrapolateRight: "clamp",
-    extrapolateLeft: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const tagOpacity = interpolate(frame, [4 * fps, 5.5 * fps], [0, 1], {
+  // Tagline
+  const tagOpacity = interpolate(frame, [5 * fps, 7 * fps], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+
+  // Fade out at end
+  const fadeOut = interpolate(frame, [11 * fps, 13 * fps], [1, 0], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
   });
 
   return (
-    <AbsoluteFill
-      style={{
-        backgroundColor: "#0a0705",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      {/* Background - use CSS gradient instead of small image */}
+    <AbsoluteFill style={{ backgroundColor: "#120B07" }}>
+      {/* Background bungalow with slow zoom */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(ellipse at center, #1a120a 0%, #0a0705 100%)",
+          overflow: "hidden",
         }}
-      />
+      >
+        <Img
+          src={staticFile("images/bungalow_exterior_1787633886090.jpg")}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: bgOpacity,
+            filter: "brightness(0.35) sepia(0.4) contrast(1.1)",
+            transform: `scale(${bgScale})`,
+          }}
+        />
+      </div>
 
-      {/* Warm candle glow overlay */}
+      {/* Dark overlay with vignette */}
       <div
         style={{
           position: "absolute",
-          width: "800px",
-          height: "800px",
+          inset: 0,
+          background: "radial-gradient(ellipse at center, transparent 30%, #120B07 85%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Warm candle glow */}
+      <div
+        style={{
+          position: "absolute",
+          top: "30%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "900px",
+          height: "900px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(201,151,56,0.12) 0%, transparent 70%)",
-          transform: `scale(${glowScale})`,
+          background: "radial-gradient(circle, rgba(201,151,56,0.2) 0%, transparent 60%)",
+          opacity: glowOpacity,
           pointerEvents: "none",
         }}
       />
@@ -83,24 +117,26 @@ export const IntroScene: React.FC = () => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          textAlign: "center",
-          padding: "0 120px",
+          justifyContent: "center",
+          height: "100%",
+          padding: "0 160px",
+          opacity: fadeOut,
         }}
       >
-        {/* Brand badge */}
+        {/* Badge */}
         <div
           style={{
             opacity: titleOpacity,
             transform: `translateY(${titleY}px)`,
-            marginBottom: "32px",
-            padding: "12px 32px",
-            borderRadius: "32px",
-            border: "1px solid rgba(201,151,56,0.6)",
-            backgroundColor: "rgba(30,20,13,0.9)",
+            marginBottom: "40px",
+            padding: "14px 36px",
+            borderRadius: "36px",
+            border: "1px solid rgba(201,151,56,0.5)",
+            backgroundColor: "rgba(18,11,7,0.85)",
             color: "#D4AF37",
-            fontSize: "18px",
-            fontFamily: "monospace",
-            letterSpacing: "4px",
+            fontSize: "16px",
+            fontFamily: "'Special Elite', monospace",
+            letterSpacing: "5px",
             textTransform: "uppercase" as const,
           }}
         >
@@ -111,13 +147,13 @@ export const IntroScene: React.FC = () => {
         <div
           style={{
             opacity: titleOpacity,
-            transform: `translateY(${titleY}px)`,
-            fontSize: "120px",
-            fontWeight: 900,
+            transform: `translateY(${titleY}px) scale(${titleScale})`,
+            fontSize: "140px",
+            fontWeight: 400,
             color: "#F7EFE2",
-            fontFamily: "Georgia, serif",
-            letterSpacing: "12px",
-            textShadow: "0 4px 40px rgba(0,0,0,0.8)",
+            fontFamily: FONT_BRAND,
+            letterSpacing: "16px",
+            textShadow: "0 4px 60px rgba(0,0,0,0.9), 0 0 120px rgba(201,151,56,0.15)",
             lineHeight: 1,
           }}
         >
@@ -128,13 +164,13 @@ export const IntroScene: React.FC = () => {
         <div
           style={{
             opacity: subOpacity,
-            transform: `translateY(${subY}px)`,
-            marginTop: "32px",
-            fontSize: "42px",
-            fontWeight: 700,
+            marginTop: "40px",
+            fontSize: "48px",
+            fontWeight: 400,
             fontStyle: "italic",
             color: "#D4AF37",
-            fontFamily: "Georgia, serif",
+            fontFamily: FONT_ANTIQUE,
+            textShadow: "0 2px 20px rgba(0,0,0,0.8)",
           }}
         >
           A midnight crime in a shuttered bungalow.
@@ -144,12 +180,13 @@ export const IntroScene: React.FC = () => {
         <div
           style={{
             opacity: tagOpacity,
-            marginTop: "40px",
-            fontSize: "24px",
+            marginTop: "48px",
+            fontSize: "26px",
             color: "#BAAFA1",
-            fontFamily: "sans-serif",
-            maxWidth: "700px",
-            lineHeight: 1.6,
+            fontFamily: "'DM Sans', sans-serif",
+            maxWidth: "800px",
+            lineHeight: 1.7,
+            textAlign: "center" as const,
           }}
         >
           Six suspects. Six weapons. Nine rooms of secrets.
@@ -158,12 +195,15 @@ export const IntroScene: React.FC = () => {
         </div>
       </div>
 
-      {/* Vignette overlay */}
+      {/* Bottom vignette */}
       <div
         style={{
           position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse at center, transparent 40%, rgba(10,7,5,0.7) 100%)",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "300px",
+          background: "linear-gradient(to top, #120B07, transparent)",
           pointerEvents: "none",
         }}
       />

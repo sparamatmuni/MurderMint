@@ -7,24 +7,22 @@ import { CTAScene } from "./scenes/CTAScene";
 
 // Scene durations based on voiceover audio lengths (in seconds)
 const SCENE_DURATIONS = {
-  intro: 8.67,
-  characters: 9.69,
-  gameplay: 7.76,
-  deduction: 7.65,
-  cta: 6.87,
+  intro: 13.64,
+  characters: 18.23,
+  gameplay: 12.67,
+  deduction: 9.33,
+  cta: 12.67,
 };
 
 export const MurderMintLaunchVideo: React.FC = () => {
   const { fps } = useVideoConfig();
 
-  // Convert to frames
   const introFrames = Math.ceil(SCENE_DURATIONS.intro * fps);
   const charactersFrames = Math.ceil(SCENE_DURATIONS.characters * fps);
   const gameplayFrames = Math.ceil(SCENE_DURATIONS.gameplay * fps);
   const deductionFrames = Math.ceil(SCENE_DURATIONS.deduction * fps);
   const ctaFrames = Math.ceil(SCENE_DURATIONS.cta * fps);
 
-  // Calculate start frames
   const introStart = 0;
   const charactersStart = introFrames;
   const gameplayStart = charactersStart + charactersFrames;
@@ -32,11 +30,11 @@ export const MurderMintLaunchVideo: React.FC = () => {
   const ctaStart = deductionStart + deductionFrames;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0705" }}>
+    <AbsoluteFill style={{ backgroundColor: "#120B07" }}>
       {/* Background music - loops for entire duration */}
       <Audio
         src={staticFile("voiceover/background-music.mp3")}
-        volume={0.15}
+        volume={0.12}
         loop
       />
 
