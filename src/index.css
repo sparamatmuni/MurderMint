@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #120B07;
+    --card-surface: #1E140D;
+    --card-elevated: #2A1B12;
+    --crimson: #9B2226;
+    --crimson-hover: #7E1A1E;
+    --mint: #2E7D5B;
+    --mint-hover: #236347;
+    --gold: #C99738;
+    --gold-hover: #B2832E;
+    --brass: #D4AF37;
+    --text-primary: #F7EFE2;
+    --text-secondary: #BAAFA1;
+    --border-color: #3E291C;
+    --border-light: #5A3E2B;
+    --error-red: #D9383A;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #120B07;
+    color: #F7EFE2;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(201, 151, 56, 0.08) 0%, transparent 60%),
+      radial-gradient(circle at 100% 100%, rgba(155, 34, 38, 0.06) 0%, transparent 50%),
+      linear-gradient(to bottom, #120B07, #180F0A);
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: 'IM Fell English', 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.02em;
+  }
+
+  .font-brand {
+    font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  }
+
+  .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
+
+  .font-mystery {
+    font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  }
+
+  .font-antique {
+    font-family: 'IM Fell English', 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .font-cormorant {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .font-typewriter {
+    font-family: 'Special Elite', 'Courier New', monospace;
+  }
+
+  .font-dm {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .font-mono-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Noir & Bungalow Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #120B07;
+}
+::-webkit-scrollbar-thumb {
+  background: #3E291C;
+  border-radius: 3px;
+  border: 1px solid #5A3E2B;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C99738;
+}
+
+/* Subtle Noir Atmosphere Animations */
+@keyframes candleFlicker {
+  0%, 100% { opacity: 0.94; filter: drop-shadow(0 0 16px rgba(201, 151, 56, 0.4)); }
+  25% { opacity: 0.86; filter: drop-shadow(0 0 10px rgba(201, 151, 56, 0.25)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 22px rgba(201, 151, 56, 0.55)); }
+  75% { opacity: 0.89; filter: drop-shadow(0 0 14px rgba(201, 151, 56, 0.3)); }
+}
+
+@keyframes fogDrift {
+  0% { transform: translateX(-5%) translateY(0%); opacity: 0.22; }
+  50% { transform: translateX(5%) translateY(-3%); opacity: 0.38; }
+  100% { transform: translateX(-5%) translateY(0%); opacity: 0.22; }
+}
+
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 151, 56, 0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(201, 151, 56, 0); }
+}
+
+@keyframes pulseCrimson {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(155, 34, 38, 0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(155, 34, 38, 0); }
+}
+
+.animate-candle {
+  animation: candleFlicker 4s infinite ease-in-out;
+}
+
+.animate-fog {
+  animation: fogDrift 16s infinite ease-in-out;
+}
+
+.animate-pulse-gold {
+  animation: pulseGold 2s infinite ease-in-out;
+}
+
+.animate-pulse-crimson {
+  animation: pulseCrimson 2s infinite ease-in-out;
+}
+
+/* Vintage Bungalow Estate Background & Textures */
+.bg-blueprint, .bg-bungalow-estate {
+  background-image: 
+    radial-gradient(ellipse at 50% 30%, rgba(18, 11, 7, 0.65) 0%, rgba(18, 11, 7, 0.85) 60%, rgba(18, 11, 7, 0.97) 100%),
+    url('/src/assets/images/bungalow_exterior_1787633886090.jpg');
+  background-size: cover, cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.bg-manor-paper {
+  background-color: #1E140D;
+  background-image: radial-gradient(rgba(201, 151, 56, 0.07) 1px, transparent 0);
+  background-size: 16px 16px;
+}
+
+.bg-bungalow-wood {
+  background-color: #1A1009;
+  background-image: 
+    repeating-linear-gradient(45deg, rgba(30, 20, 13, 0.8), rgba(30, 20, 13, 0.8) 10px, rgba(22, 14, 9, 0.9) 10px, rgba(22, 14, 9, 0.9) 20px);
+}
+
+.bg-aged-parchment {
+  background-color: #241A12;
+  border-color: #4A3322;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.brass-border {
+  border: 1px solid #785822;
+  box-shadow: inset 0 1px 0 rgba(229, 193, 88, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.wood-frame {
+  border: 2px solid #4A3322;
+  background: linear-gradient(180deg, #24170F 0%, #170E08 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(201, 151, 56, 0.2);
+}
+

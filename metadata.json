@@ -1,0 +1,8 @@
+{
+  "name": "MurderMint",
+  "description": "A 1930s noir murder-mystery deduction board game where players investigate a mansion, make suggestions, track deductions, and solve the crime.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
