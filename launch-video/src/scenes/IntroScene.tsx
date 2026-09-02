@@ -4,7 +4,7 @@ export const IntroScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const bgOpacity = interpolate(frame, [0, 1.5 * fps], [0, 0.6], {
+  const bgOpacity = interpolate(frame, [0, 1.5 * fps], [0, 0.5], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -17,29 +17,29 @@ export const IntroScene: React.FC = () => {
     { extrapolateRight: "clamp" }
   );
 
-  const titleOpacity = interpolate(frame, [1.5 * fps, 3 * fps], [0, 1], {
+  const titleOpacity = interpolate(frame, [1 * fps, 2.5 * fps], [0, 1], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const titleY = interpolate(frame, [1.5 * fps, 3 * fps], [40, 0], {
+  const titleY = interpolate(frame, [1 * fps, 2.5 * fps], [40, 0], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
-  const subOpacity = interpolate(frame, [3 * fps, 4.5 * fps], [0, 1], {
+  const subOpacity = interpolate(frame, [2.5 * fps, 4 * fps], [0, 1], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
   });
 
-  const subY = interpolate(frame, [3 * fps, 4.5 * fps], [20, 0], {
+  const subY = interpolate(frame, [2.5 * fps, 4 * fps], [20, 0], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
   });
 
-  const tagOpacity = interpolate(frame, [5 * fps, 6.5 * fps], [0, 1], {
+  const tagOpacity = interpolate(frame, [4 * fps, 5.5 * fps], [0, 1], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
   });
@@ -53,30 +53,29 @@ export const IntroScene: React.FC = () => {
         alignItems: "center",
       }}
     >
-      <Img
-        src={staticFile("images/bungalow_exterior_1787633886090.jpg")}
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          opacity: bgOpacity,
-          filter: "brightness(0.4) sepia(0.3)",
-        }}
-      />
-
+      {/* Background - use CSS gradient instead of small image */}
       <div
         style={{
           position: "absolute",
-          width: "600px",
-          height: "600px",
+          inset: 0,
+          background: "radial-gradient(ellipse at center, #1a120a 0%, #0a0705 100%)",
+        }}
+      />
+
+      {/* Warm candle glow overlay */}
+      <div
+        style={{
+          position: "absolute",
+          width: "800px",
+          height: "800px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(201,151,56,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(201,151,56,0.12) 0%, transparent 70%)",
           transform: `scale(${glowScale})`,
           pointerEvents: "none",
         }}
       />
 
+      {/* Content */}
       <div
         style={{
           position: "relative",
@@ -85,50 +84,53 @@ export const IntroScene: React.FC = () => {
           flexDirection: "column",
           alignItems: "center",
           textAlign: "center",
-          padding: "0 80px",
+          padding: "0 120px",
         }}
       >
+        {/* Brand badge */}
         <div
           style={{
             opacity: titleOpacity,
             transform: `translateY(${titleY}px)`,
-            marginBottom: "24px",
-            padding: "8px 24px",
-            borderRadius: "24px",
+            marginBottom: "32px",
+            padding: "12px 32px",
+            borderRadius: "32px",
             border: "1px solid rgba(201,151,56,0.6)",
             backgroundColor: "rgba(30,20,13,0.9)",
             color: "#D4AF37",
-            fontSize: "14px",
+            fontSize: "18px",
             fontFamily: "monospace",
-            letterSpacing: "3px",
+            letterSpacing: "4px",
             textTransform: "uppercase" as const,
           }}
         >
-          Blackwood Estate - 1930s Mystery
+          Blackwood Estate — 1930s Mystery
         </div>
 
+        {/* Title */}
         <div
           style={{
             opacity: titleOpacity,
             transform: `translateY(${titleY}px)`,
-            fontSize: "96px",
+            fontSize: "120px",
             fontWeight: 900,
             color: "#F7EFE2",
             fontFamily: "Georgia, serif",
-            letterSpacing: "8px",
-            textShadow: "0 4px 30px rgba(0,0,0,0.8)",
+            letterSpacing: "12px",
+            textShadow: "0 4px 40px rgba(0,0,0,0.8)",
             lineHeight: 1,
           }}
         >
           MURDER<span style={{ color: "#2E7D5B" }}>MINT</span>
         </div>
 
+        {/* Subtitle */}
         <div
           style={{
             opacity: subOpacity,
             transform: `translateY(${subY}px)`,
-            marginTop: "24px",
-            fontSize: "36px",
+            marginTop: "32px",
+            fontSize: "42px",
             fontWeight: 700,
             fontStyle: "italic",
             color: "#D4AF37",
@@ -138,22 +140,25 @@ export const IntroScene: React.FC = () => {
           A midnight crime in a shuttered bungalow.
         </div>
 
+        {/* Tagline */}
         <div
           style={{
             opacity: tagOpacity,
-            marginTop: "32px",
-            fontSize: "18px",
+            marginTop: "40px",
+            fontSize: "24px",
             color: "#BAAFA1",
             fontFamily: "sans-serif",
-            maxWidth: "600px",
+            maxWidth: "700px",
             lineHeight: 1.6,
           }}
         >
           Six suspects. Six weapons. Nine rooms of secrets.
+          <br />
           Only one detective can crack the case.
         </div>
       </div>
 
+      {/* Vignette overlay */}
       <div
         style={{
           position: "absolute",

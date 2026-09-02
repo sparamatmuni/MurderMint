@@ -1,19 +1,18 @@
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, Easing, Img, staticFile } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, Easing } from "remotion";
 
 const CHARACTERS = [
-  { name: "Miss Scarlet", img: "images/char_scarlet_1787634742674.jpg", color: "#B5273B" },
-  { name: "Colonel Mustard", img: "images/char_mustard_1787634756412.jpg", color: "#C9A24B" },
-  { name: "Mrs. Peacock", img: "images/char_peacock_1787634792333.jpg", color: "#2B6CB0" },
-  { name: "Professor Plum", img: "images/char_plum_1787634804684.jpg", color: "#7A3FB0" },
-  { name: "Mr. Green", img: "images/char_green_1787634778516.jpg", color: "#2FBF8F" },
-  { name: "Mrs. White", img: "images/char_white_1787634767182.jpg", color: "#E8DEC8" },
+  { name: "Miss Scarlet", color: "#B5273B", initial: "S" },
+  { name: "Colonel Mustard", color: "#C9A24B", initial: "M" },
+  { name: "Mrs. Peacock", color: "#2B6CB0", initial: "P" },
+  { name: "Professor Plum", color: "#7A3FB0", initial: "Pl" },
+  { name: "Mr. Green", color: "#2FBF8F", initial: "G" },
+  { name: "Mrs. White", color: "#E8DEC8", initial: "W" },
 ];
 
 export const CharactersScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Section title
   const titleOpacity = interpolate(frame, [0, 0.8 * fps], [0, 1], {
     extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
@@ -33,7 +32,7 @@ export const CharactersScene: React.FC = () => {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: "60px 80px",
+        padding: "80px 120px",
       }}
     >
       {/* Section label */}
@@ -41,32 +40,33 @@ export const CharactersScene: React.FC = () => {
         style={{
           opacity: titleOpacity,
           transform: `translateY(${titleY}px)`,
-          marginBottom: "40px",
-          padding: "8px 20px",
-          borderRadius: "20px",
+          marginBottom: "60px",
+          padding: "10px 28px",
+          borderRadius: "28px",
           border: "1px solid rgba(155,34,38,0.6)",
           backgroundColor: "rgba(155,34,38,0.15)",
           color: "#E63946",
-          fontSize: "14px",
+          fontSize: "18px",
           fontFamily: "monospace",
-          letterSpacing: "3px",
+          letterSpacing: "4px",
           textTransform: "uppercase" as const,
         }}
       >
         The Suspects
       </div>
 
-      {/* Characters grid */}
+      {/* Characters grid - 3x2 */}
       <div
         style={{
           display: "flex",
-          gap: "24px",
-          justifyContent: "center",
           flexWrap: "wrap",
+          gap: "40px",
+          justifyContent: "center",
+          maxWidth: "1400px",
         }}
       >
         {CHARACTERS.map((char, i) => {
-          const delay = 0.8 * fps + i * 0.25 * fps;
+          const delay = 0.8 * fps + i * 0.2 * fps;
           const cardOpacity = interpolate(frame, [delay, delay + 0.5 * fps], [0, 1], {
             extrapolateRight: "clamp",
             extrapolateLeft: "clamp",
@@ -91,31 +91,34 @@ export const CharactersScene: React.FC = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "12px",
+                gap: "16px",
+                width: "200px",
               }}
             >
+              {/* Character avatar - CSS circle with initial */}
               <div
                 style={{
-                  width: "140px",
-                  height: "140px",
+                  width: "160px",
+                  height: "160px",
                   borderRadius: "50%",
-                  overflow: "hidden",
-                  border: `3px solid ${char.color}`,
-                  boxShadow: `0 0 20px ${char.color}40`,
+                  backgroundColor: char.color,
+                  border: `4px solid ${char.color}`,
+                  boxShadow: `0 0 30px ${char.color}60, inset 0 -20px 40px rgba(0,0,0,0.3)`,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  fontSize: "56px",
+                  fontWeight: 900,
+                  color: char.color === "#E8DEC8" ? "#1a120a" : "#F7EFE2",
+                  fontFamily: "Georgia, serif",
+                  textShadow: "0 2px 10px rgba(0,0,0,0.3)",
                 }}
               >
-                <Img
-                  src={staticFile(char.img)}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
+                {char.initial}
               </div>
               <div
                 style={{
-                  fontSize: "16px",
+                  fontSize: "20px",
                   fontWeight: 700,
                   color: char.color,
                   fontFamily: "Georgia, serif",
@@ -133,12 +136,12 @@ export const CharactersScene: React.FC = () => {
       {/* Bottom tagline */}
       <div
         style={{
-          opacity: interpolate(frame, [4 * fps, 5 * fps], [0, 1], {
+          opacity: interpolate(frame, [3 * fps, 4 * fps], [0, 1], {
             extrapolateRight: "clamp",
             extrapolateLeft: "clamp",
           }),
-          marginTop: "48px",
-          fontSize: "22px",
+          marginTop: "60px",
+          fontSize: "28px",
           fontStyle: "italic",
           color: "#D4AF37",
           fontFamily: "Georgia, serif",
