@@ -23,6 +23,9 @@ import {
 import { playClickSound } from '../utils/sound';
 import { AmbientAudioWidget } from '../components/AmbientAudioWidget';
 import { RulesModal } from '../components/RulesModal';
+import { getGameHistory, getDetectiveStats, getWinRate, GameRecord } from '../utils/gameHistory';
+import { CHARACTERS } from '../data/gameData';
+import { Trophy, Clock, Target, Zap, ChevronRight } from 'lucide-react';
 
 interface LandingViewProps {
   onCreateGame: () => void;
@@ -36,6 +39,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onQuickPlay,
 }) => {
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
+  const recentGames = getGameHistory().slice(0, 5);
+  const stats = getDetectiveStats();
+  const winRate = getWinRate();
 
   const scrollToHowToPlay = () => {
     playClickSound();
@@ -396,6 +402,113 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </button>
         </div>
       </section>
+
+      {/* ===================== CASE FILES & CAREER STATS ===================== */}
+      {(stats.totalGames > 0 || recentGames.length > 0) && (
+        <section className="relative z-10 w-full max-w-5xl mx-auto px-6 py-12 border-t-2 border-[#5A3E2B]">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1E140D] border border-[#C99738] text-[#D4AF37] text-xs font-typewriter tracking-widest uppercase mb-3">
+              <Trophy className="w-3.5 h-3.5" />
+              <span>Detective Archives</span>
+            </div>
+            <h2 className="font-antique font-bold text-3xl sm:text-4xl text-[#F7EFE2] mb-3 tracking-wide">
+              Your Case Files
+            </h2>
+            <p className="font-sans text-sm text-[#BAAFA1] leading-relaxed">
+              Review your detective career, past investigations, and deduce your next move.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Career Stats Card */}
+            <div className="bg-[#1E140D] border-2 border-[#5A3E2B] rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#4A3322]">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-[#D4AF37]" />
+                  <span className="font-antique font-bold text-base text-[#F7EFE2]">Career Record</span>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#C9A24B]/20 text-[#D4AF37] border border-[#C99738]/40 text-[10px] font-bold font-typewriter">
+                  {stats.detectiveRankIcon} {stats.detectiveRank}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 bg-[#120B07] rounded-xl border border-[#4A3322]/60">
+                  <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Cases Solved</span>
+                  <span className="font-bold text-xl text-[#2E7D5B] font-typewriter">{stats.wins}</span>
+                </div>
+                <div className="text-center p-3 bg-[#120B07] rounded-xl border border-[#4A3322]/60">
+                  <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Win Rate</span>
+                  <span className="font-bold text-xl text-[#D4AF37] font-typewriter">{winRate}%</span>
+                </div>
+                <div className="text-center p-3 bg-[#120B07] rounded-xl border border-[#4A3322]/60">
+                  <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Total Cases</span>
+                  <span className="font-bold text-xl text-[#F7EFE2] font-typewriter">{stats.totalGames}</span>
+                </div>
+                <div className="text-center p-3 bg-[#120B07] rounded-xl border border-[#4A3322]/60">
+                  <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Best Streak</span>
+                  <span className="font-bold text-xl text-[#C9A24B] font-typewriter flex items-center justify-center gap-0.5">
+                    <Zap className="w-3 h-3" /> {stats.bestWinStreak}
+                  </span>
+                </div>
+              </div>
+              {stats.coldCases > 0 && (
+                <p className="text-[10px] text-[#9B2226] text-center mt-3 font-typewriter">
+                  {stats.coldCases} case{stats.coldCases !== 1 ? 's' : ''} left unsolved (Cold Cases)
+                </p>
+              )}
+            </div>
+
+            {/* Recent Cases List */}
+            <div className="bg-[#1E140D] border-2 border-[#5A3E2B] rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#4A3322]">
+                <Clock className="w-4 h-4 text-[#D4AF37]" />
+                <span className="font-antique font-bold text-base text-[#F7EFE2]">Recent Investigations</span>
+              </div>
+              {recentGames.length === 0 ? (
+                <div className="text-center py-8">
+                  <Target className="w-8 h-8 text-[#C99738]/30 mx-auto mb-2" />
+                  <p className="text-xs text-[#BAAFA1] font-sans">No cases yet. Start your first investigation!</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recentGames.map((game) => (
+                    <div
+                      key={game.id}
+                      className="flex items-center justify-between p-3 bg-[#120B07] rounded-xl border border-[#4A3322]/60 hover:border-[#C99738]/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                          game.winnerId ? 'bg-[#2E7D5B]/20 text-[#2E7D5B] border border-[#2E7D5B]/40' : 'bg-[#9B2226]/20 text-[#9B2226] border border-[#9B2226]/40'
+                        }`}>
+                          {game.winnerId ? '✓' : '✗'}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-[#F7EFE2] font-sans truncate max-w-[180px]">
+                            {game.roomName}
+                          </p>
+                          <p className="text-[10px] text-[#BAAFA1] font-typewriter">
+                            {game.totalTurns} turns • {game.totalSuggestions} sug • {game.playerCount}p
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-[#BAAFA1] font-typewriter">
+                          {new Date(game.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </p>
+                        {game.winnerCharacter && (
+                          <p className="text-[9px] text-[#D4AF37] font-typewriter">
+                            {CHARACTERS[game.winnerCharacter]?.name || ''}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="w-full max-w-6xl mx-auto px-6 py-6 text-center text-xs text-[#BAAFA1]/60 border-t border-[#3E291C] font-typewriter flex flex-col sm:flex-row items-center justify-between gap-2 z-10">

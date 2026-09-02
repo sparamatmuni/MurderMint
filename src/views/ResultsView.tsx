@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GameState } from '../types';
 import { ALL_CARDS, CHARACTERS, ROOMS, WEAPONS } from '../data/gameData';
 import { EvidenceCard } from '../components/EvidenceCard';
@@ -10,10 +10,14 @@ import {
   Skull, 
   ShieldCheck, 
   History,
-  Award
+  Award,
+  Trophy,
+  Target,
+  Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { playClickSound, playVictorySound } from '../utils/sound';
+import { getDetectiveStats, getWinRate } from '../utils/gameHistory';
 
 interface ResultsViewProps {
   state: GameState;
@@ -27,13 +31,22 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onReturnToLobby,
 }) => {
   const { secretSolution, winnerId, isColdCase, players, suggestions, accusations } = state;
+  const [stats, setStats] = useState(() => getDetectiveStats());
+  const [winRate, setWinRate] = useState(() => getWinRate());
 
   const winner = players.find(p => p.id === winnerId);
   const winningChar = winner ? CHARACTERS[winner.characterId] : null;
+  const didWin = winnerId !== null && winnerId !== undefined;
 
   const suspectCard = ALL_CARDS.find(c => c.category === 'suspect' && c.rawId === secretSolution.suspect)!;
   const weaponCard = ALL_CARDS.find(c => c.category === 'weapon' && c.rawId === secretSolution.weapon)!;
   const roomCard = ALL_CARDS.find(c => c.category === 'room' && c.rawId === secretSolution.room)!;
+
+  useEffect(() => {
+    // Refresh stats from localStorage in case they changed
+    setStats(getDetectiveStats());
+    setWinRate(getWinRate());
+  }, []);
 
   useEffect(() => {
     if (winner) {
@@ -107,8 +120,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           </div>
         </div>
 
-        {/* Case Statistics Summary */}
-        <div className="grid grid-cols-3 gap-3 w-full max-w-lg bg-[#120B07] p-4 rounded-xl border border-[#4A3322] mb-8 font-sans">
+        {/* This Game Statistics Summary */}
+        <div className="grid grid-cols-3 gap-3 w-full max-w-lg bg-[#120B07] p-4 rounded-xl border border-[#4A3322] mb-6 font-sans">
           <div className="text-center">
             <span className="text-[10px] text-[#BAAFA1] uppercase block font-antique">Total Turns</span>
             <span className="font-bold text-lg text-[#F7EFE2] font-typewriter">{state.turnNumber}</span>
@@ -121,6 +134,44 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             <span className="text-[10px] text-[#BAAFA1] uppercase block font-antique">Accusations</span>
             <span className="font-bold text-lg text-[#2E7D5B] font-typewriter">{accusations.length}</span>
           </div>
+        </div>
+
+        {/* Detective Rank & Career Stats */}
+        <div className="w-full max-w-lg bg-[#1E140D] p-5 rounded-xl border-2 border-[#C99738]/60 mb-8">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#4A3322]">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-[#D4AF37]" />
+              <span className="font-antique font-bold text-sm text-[#F7EFE2]">Detective Career Record</span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-[#C9A24B]/20 text-[#D4AF37] border border-[#C99738]/40 text-[10px] font-bold font-typewriter">
+              {stats.detectiveRankIcon} {stats.detectiveRank}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="text-center p-2 bg-[#120B07] rounded-lg border border-[#4A3322]/60">
+              <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Cases</span>
+              <span className="font-bold text-base text-[#F7EFE2] font-typewriter">{stats.totalGames}</span>
+            </div>
+            <div className="text-center p-2 bg-[#120B07] rounded-lg border border-[#4A3322]/60">
+              <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Wins</span>
+              <span className="font-bold text-base text-[#2E7D5B] font-typewriter">{stats.wins}</span>
+            </div>
+            <div className="text-center p-2 bg-[#120B07] rounded-lg border border-[#4A3322]/60">
+              <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Win Rate</span>
+              <span className="font-bold text-base text-[#D4AF37] font-typewriter">{winRate}%</span>
+            </div>
+            <div className="text-center p-2 bg-[#120B07] rounded-lg border border-[#4A3322]/60">
+              <span className="text-[9px] text-[#BAAFA1] uppercase block font-typewriter">Streak</span>
+              <span className="font-bold text-base text-[#C9A24B] font-typewriter flex items-center justify-center gap-0.5">
+                <Zap className="w-3 h-3" /> {stats.winStreak}
+              </span>
+            </div>
+          </div>
+          {stats.bestWinStreak > 1 && (
+            <p className="text-[10px] text-[#BAAFA1] text-center mt-2 font-typewriter">
+              Best winning streak: {stats.bestWinStreak} cases
+            </p>
+          )}
         </div>
 
         {/* CTAs */}

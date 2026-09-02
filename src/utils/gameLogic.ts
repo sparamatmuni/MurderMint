@@ -399,7 +399,91 @@ export function advanceTurn(state: GameState): GameState {
   };
 }
 
-// Bot AI Decision Helper
+// ===== SMART AI DETECTIVE MEMORY SYSTEM =====
+// AI tracks observations: what it has seen disproved, which players hold which cards.
+// Difficulty determines how strategically it reasons.
+
+interface AiMemory {
+  /** Cards this AI knows are NOT in the envelope (seen via disprove or own hand) */
+  eliminatedCards: Set<string>;
+  /** Per-card: which players were disproven with this card (cardId -> playerId[]) */
+  playerCardHints: Map<string, Set<string>>;
+  /** Rooms this AI has personally visited */
+  visitedRooms: Set<RoomId>;
+  /** Suggestions that fell silent (no one could disprove) */
+  silentSuggestions: Array<{ suspectId: CharacterId; weaponId: WeaponId; roomId: RoomId }>;
+}
+
+// Per-AI memory store keyed by player ID
+const aiMemoryStore = new Map<string, AiMemory>();
+
+export function initAiMemory(playerId: string, hand: string[]): void {
+  const memory: AiMemory = {
+    eliminatedCards: new Set(hand), // Cards in own hand are eliminated
+    playerCardHints: new Map(),
+    visitedRooms: new Set(),
+    silentSuggestions: [],
+  };
+  aiMemoryStore.set(playerId, memory);
+}
+
+export function updateAiMemoryFromSuggestion(
+  aiPlayerId: string,
+  suggestion: Suggestion,
+  observingPlayerIds: string[]
+): void {
+  const memory = aiMemoryStore.get(aiPlayerId);
+  if (!memory) return;
+
+  // If someone disproved, we know they hold at least one of the 3 cards
+  if (suggestion.disproverId && suggestion.revealedCardId) {
+    const existing = memory.playerCardHints.get(suggestion.revealedCardId) || new Set();
+    existing.add(suggestion.disproverId);
+    memory.playerCardHints.set(suggestion.revealedCardId, existing);
+  }
+
+  // If no one could disprove, all 3 suggested cards are very likely the answer
+  if (!suggestion.disproverId) {
+    memory.silentSuggestions.push({
+      suspectId: suggestion.suspectId,
+      weaponId: suggestion.weaponId,
+      roomId: suggestion.roomId,
+    });
+  }
+}
+
+function getAiMemory(playerId: string): AiMemory {
+  if (!aiMemoryStore.has(playerId)) {
+    aiMemoryStore.set(playerId, {
+      eliminatedCards: new Set(),
+      playerCardHints: new Map(),
+      visitedRooms: new Set(),
+      silentSuggestions: [],
+    });
+  }
+  return aiMemoryStore.get(playerId)!;
+}
+
+// Get cards the AI has NOT eliminated (potential envelope candidates)
+function getRemainingSuspects(memory: AiMemory, hand: string[]): CharacterId[] {
+  return (Object.keys(CHARACTERS) as CharacterId[]).filter(
+    s => !memory.eliminatedCards.has(`suspect_${s}`) && !hand.includes(`suspect_${s}`)
+  );
+}
+
+function getRemainingWeapons(memory: AiMemory, hand: string[]): WeaponId[] {
+  return (Object.keys(WEAPONS) as WeaponId[]).filter(
+    w => !memory.eliminatedCards.has(`weapon_${w}`) && !hand.includes(`weapon_${w}`)
+  );
+}
+
+function getRemainingRooms(memory: AiMemory, hand: string[]): RoomId[] {
+  return (Object.keys(ROOMS) as RoomId[]).filter(
+    r => !memory.eliminatedCards.has(`room_${r}`) && !hand.includes(`room_${r}`)
+  );
+}
+
+// ===== Bot AI Decision Helper (Smart Version) =====
 export function getAiTurnDecision(state: GameState): {
   targetRoom: RoomId;
   suggestSuspect: CharacterId;
@@ -413,29 +497,124 @@ export function getAiTurnDecision(state: GameState): {
   const currentAi = state.players[state.currentTurnIndex];
   const dice = state.diceRoll || Math.floor(Math.random() * 6) + 1;
   const reachable = getReachableRooms(currentAi.position, dice, state.houseRules.secretPassages);
+  const difficulty = state.houseRules.aiDifficulty;
+  const memory = getAiMemory(currentAi.id);
 
-  // Pick target room
-  const targetRoom = reachable[Math.floor(Math.random() * reachable.length)] || currentAi.position;
+  // Mark current room as visited
+  memory.visitedRooms.add(currentAi.position);
 
-  // Filter out cards the AI holds
-  const allSuspects = (Object.keys(CHARACTERS) as CharacterId[]).filter(
-    s => !currentAi.hand.includes(`suspect_${s}`)
-  );
-  const allWeapons = (Object.keys(WEAPONS) as WeaponId[]).filter(
-    w => !currentAi.hand.includes(`weapon_${w}`)
-  );
+  // Also learn from all past suggestions in the game
+  state.suggestions.forEach(sug => {
+    updateAiMemoryFromSuggestion(currentAi.id, sug, state.players.map(p => p.id));
+  });
 
-  const suggestSuspect = allSuspects[Math.floor(Math.random() * allSuspects.length)] || 'scarlet';
-  const suggestWeapon = allWeapons[Math.floor(Math.random() * allWeapons.length)] || 'candlestick';
+  const remainingSuspects = getRemainingSuspects(memory, currentAi.hand);
+  const remainingWeapons = getRemainingWeapons(memory, currentAi.hand);
+  const remainingRooms = getRemainingRooms(memory, currentAi.hand);
 
-  // If high difficulty AI has played several turns and chance of guessing right
+  // ===== TARGET ROOM SELECTION =====
+  let targetRoom: RoomId;
+  if (difficulty === 'detective') {
+    // Prioritize rooms not yet visited, then rooms matching remaining rooms
+    const unvisitedRooms = reachable.filter(r => !memory.visitedRooms.has(r));
+    const unvisitedRemaining = unvisitedRooms.filter(r => remainingRooms.includes(r));
+    if (unvisitedRemaining.length > 0) {
+      targetRoom = unvisitedRemaining[Math.floor(Math.random() * unvisitedRemaining.length)];
+    } else if (unvisitedRooms.length > 0) {
+      targetRoom = unvisitedRooms[Math.floor(Math.random() * unvisitedRooms.length)];
+    } else {
+      targetRoom = reachable[Math.floor(Math.random() * reachable.length)] || currentAi.position;
+    }
+  } else if (difficulty === 'medium') {
+    // Sometimes pick unvisited rooms
+    const unvisited = reachable.filter(r => !memory.visitedRooms.has(r));
+    if (unvisited.length > 0 && Math.random() < 0.6) {
+      targetRoom = unvisited[Math.floor(Math.random() * unvisited.length)];
+    } else {
+      targetRoom = reachable[Math.floor(Math.random() * reachable.length)] || currentAi.position;
+    }
+  } else {
+    // Easy: fully random
+    targetRoom = reachable[Math.floor(Math.random() * reachable.length)] || currentAi.position;
+  }
+
+  // ===== SUGGESTION SELECTION =====
+  let suggestSuspect: CharacterId;
+  let suggestWeapon: WeaponId;
+
+  if (difficulty === 'detective' && remainingSuspects.length > 0 && remainingWeapons.length > 0) {
+    // Strategic: only suggest suspects/weapons NOT yet eliminated
+    suggestSuspect = remainingSuspects[Math.floor(Math.random() * remainingSuspects.length)];
+    suggestWeapon = remainingWeapons[Math.floor(Math.random() * remainingWeapons.length)];
+  } else if (difficulty === 'medium') {
+    // 70% chance to use remaining, 30% random
+    if (Math.random() < 0.7 && remainingSuspects.length > 0 && remainingWeapons.length > 0) {
+      suggestSuspect = remainingSuspects[Math.floor(Math.random() * remainingSuspects.length)];
+      suggestWeapon = remainingWeapons[Math.floor(Math.random() * remainingWeapons.length)];
+    } else {
+      const allSuspects = (Object.keys(CHARACTERS) as CharacterId[]).filter(
+        s => !currentAi.hand.includes(`suspect_${s}`)
+      );
+      const allWeapons = (Object.keys(WEAPONS) as WeaponId[]).filter(
+        w => !currentAi.hand.includes(`weapon_${w}`)
+      );
+      suggestSuspect = allSuspects[Math.floor(Math.random() * allSuspects.length)] || 'scarlet';
+      suggestWeapon = allWeapons[Math.floor(Math.random() * allWeapons.length)] || 'candlestick';
+    }
+  } else {
+    // Easy: random
+    const allSuspects = (Object.keys(CHARACTERS) as CharacterId[]).filter(
+      s => !currentAi.hand.includes(`suspect_${s}`)
+    );
+    const allWeapons = (Object.keys(WEAPONS) as WeaponId[]).filter(
+      w => !currentAi.hand.includes(`weapon_${w}`)
+    );
+    suggestSuspect = allSuspects[Math.floor(Math.random() * allSuspects.length)] || 'scarlet';
+    suggestWeapon = allWeapons[Math.floor(Math.random() * allWeapons.length)] || 'candlestick';
+  }
+
+  // ===== ACCUSATION LOGIC =====
   let makeAccusation: { suspect: CharacterId; weapon: WeaponId; room: RoomId } | undefined = undefined;
-  if (!currentAi.hasAccused && state.turnNumber > 8 && Math.random() < 0.2) {
-    makeAccusation = {
-      suspect: state.secretSolution.suspect,
-      weapon: state.secretSolution.weapon,
-      room: state.secretSolution.room,
-    };
+
+  if (!currentAi.hasAccused) {
+    if (difficulty === 'detective') {
+      // Accuse only when we've narrowed to exactly 1 candidate per category
+      if (remainingSuspects.length === 1 && remainingWeapons.length === 1 && remainingRooms.length === 1) {
+        makeAccusation = {
+          suspect: remainingSuspects[0],
+          weapon: remainingWeapons[0],
+          room: remainingRooms[0],
+        };
+      } else if (state.turnNumber > 20 && remainingSuspects.length <= 2 && remainingWeapons.length <= 2 && remainingRooms.length <= 2) {
+        // After many turns, take a calculated risk
+        makeAccusation = {
+          suspect: remainingSuspects[0],
+          weapon: remainingWeapons[0],
+          room: remainingRooms[0],
+        };
+      }
+    } else if (difficulty === 'medium') {
+      // After turn 10, small chance to accuse with best guesses
+      if (state.turnNumber > 10 && remainingSuspects.length <= 3 && remainingWeapons.length <= 3 && remainingRooms.length <= 3 && Math.random() < 0.15) {
+        makeAccusation = {
+          suspect: remainingSuspects[0],
+          weapon: remainingWeapons[0],
+          room: remainingRooms[0],
+        };
+      }
+    } else {
+      // Easy: random chance after turn 8
+      if (state.turnNumber > 8 && Math.random() < 0.12) {
+        const randSuspect = remainingSuspects[0] || (Object.keys(CHARACTERS) as CharacterId[])[0];
+        const randWeapon = remainingWeapons[0] || (Object.keys(WEAPONS) as WeaponId[])[0];
+        const randRoom = remainingRooms[0] || (Object.keys(ROOMS) as RoomId[])[0];
+        makeAccusation = {
+          suspect: randSuspect,
+          weapon: randWeapon,
+          room: randRoom,
+        };
+      }
+    }
   }
 
   return {

@@ -42,6 +42,7 @@ export const CreateGameView: React.FC<CreateGameViewProps> = ({
   const [secretPassages, setSecretPassages] = useState(true);
   const [autoNotes, setAutoNotes] = useState(true);
   const [aiDifficulty, setAiDifficulty] = useState<'easy' | 'medium' | 'detective'>('detective');
+  const [diceCount, setDiceCount] = useState<1 | 2>(1);
 
   const handleCopyCode = () => {
     playClickSound();
@@ -71,7 +72,7 @@ export const CreateGameView: React.FC<CreateGameViewProps> = ({
       secretPassages,
       autoNotes,
       aiDifficulty,
-      diceCount: 1,
+      diceCount,
     };
 
     onEnterLobby(roomCode, roomName, hostPlayer, maxPlayers, rules);
@@ -264,6 +265,33 @@ export const CreateGameView: React.FC<CreateGameViewProps> = ({
               />
               <span className="font-sans">Auto-record disproved evidence in Detective Notepad</span>
             </label>
+            <div className="flex items-center justify-between pt-1">
+              <span className="font-sans">Movement Dice</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setDiceCount(1)}
+                  className={`px-2.5 py-1 rounded text-[10px] font-bold font-typewriter border transition-colors cursor-pointer ${
+                    diceCount === 1
+                      ? 'bg-[#C99738] text-[#120B07] border-[#C99738]'
+                      : 'bg-[#1E140D] text-[#BAAFA1] border-[#4A3322] hover:border-[#785822]'
+                  }`}
+                >
+                  1 Die
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDiceCount(2)}
+                  className={`px-2.5 py-1 rounded text-[10px] font-bold font-typewriter border transition-colors cursor-pointer ${
+                    diceCount === 2
+                      ? 'bg-[#C99738] text-[#120B07] border-[#C99738]'
+                      : 'bg-[#1E140D] text-[#BAAFA1] border-[#4A3322] hover:border-[#785822]'
+                  }`}
+                >
+                  2 Dice
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Submit CTA */}

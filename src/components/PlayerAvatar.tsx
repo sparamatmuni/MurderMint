@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { Player, CharacterId } from '../types';
 import { CHARACTERS } from '../data/gameData';
 import { Crown, Bot, AlertCircle } from 'lucide-react';
@@ -121,8 +122,10 @@ export const PlayerToken: React.FC<{
   const char = CHARACTERS[characterId] || CHARACTERS.scarlet;
 
   return (
-    <div 
-      className={`relative rounded-full flex items-center justify-center font-bold text-xs shadow-lg transition-transform overflow-hidden ${
+    <motion.div 
+      layout
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      className={`relative rounded-full flex items-center justify-center font-bold text-xs shadow-lg overflow-hidden ${
         isCurrent 
           ? 'w-8 h-8 ring-2 ring-[#C9A24B] shadow-[0_0_14px_rgba(201,162,75,0.7)] animate-pulse-gold scale-110 z-20' 
           : 'w-7 h-7 border-2 border-[#141118]/90 hover:scale-110 z-10'
@@ -132,6 +135,7 @@ export const PlayerToken: React.FC<{
         color: char.id === 'white' ? '#141118' : '#F3EDE4',
       }}
       title={label || char.name}
+      whileHover={{ scale: 1.15 }}
     >
       {char.imageUrl ? (
         <img
@@ -145,6 +149,6 @@ export const PlayerToken: React.FC<{
           {char.name.split(' ')[1]?.[0] || char.name[0]}
         </span>
       )}
-    </div>
+    </motion.div>
   );
 };

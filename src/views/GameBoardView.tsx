@@ -24,8 +24,10 @@ import {
   processAccusation, 
   advanceTurn, 
   getAiTurnDecision,
-  generateUniqueId
+  generateUniqueId,
+  initAiMemory
 } from '../utils/gameLogic';
+import { recordGameCompletion } from '../utils/gameHistory';
 import { playClickSound, playErrorSound, playMoveSound, playTelegraphSound } from '../utils/sound';
 
 interface GameBoardViewProps {
@@ -46,6 +48,13 @@ export const GameBoardView: React.FC<GameBoardViewProps> = ({
   const [state, setState] = useState<GameState>(initialState);
   const [reachableRooms, setReachableRooms] = useState<RoomId[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<RoomId | null>(null);
+
+  // Initialize AI memory for all AI players on first mount
+  useEffect(() => {
+    initialState.players.filter(p => p.isAi).forEach(ai => {
+      initAiMemory(ai.id, ai.hand);
+    });
+  }, []);
 
   // Deduction Notepad State for Current User
   const [notes, setNotes] = useState<Record<string, DeductionState>>(() => {
@@ -79,6 +88,7 @@ export const GameBoardView: React.FC<GameBoardViewProps> = ({
 
   useEffect(() => {
     if (state.phase === 'game_over') {
+      recordGameCompletion(state, currentUserId);
       onGameOver(state);
       return;
     }
@@ -130,15 +140,19 @@ export const GameBoardView: React.FC<GameBoardViewProps> = ({
   const executeAiTurn = () => {
     if (!activePlayer.isAi || activePlayer.hasAccused) return;
 
-    // 1. Roll Dice
-    const roll = Math.floor(Math.random() * 6) + 1;
+    // 1. Roll Dice (supports 1 or 2 dice house rule)
+    const diceCount = state.houseRules.diceCount;
+    let roll = Math.floor(Math.random() * 6) + 1;
+    if (diceCount === 2) {
+      roll += Math.floor(Math.random() * 6) + 1;
+    }
     const reachable = getReachableRooms(activePlayer.position, roll, state.houseRules.secretPassages);
     const targetRoom = reachable[Math.floor(Math.random() * reachable.length)] || activePlayer.position;
 
-    // 2. Move AI Token
+    // 2. Move AI Token (set previousPosition for animation)
     const updatedPlayers = state.players.map(p => {
       if (p.id === activePlayer.id) {
-        return { ...p, position: targetRoom };
+        return { ...p, previousPosition: p.position, position: targetRoom };
       }
       return p;
     });
@@ -191,7 +205,12 @@ export const GameBoardView: React.FC<GameBoardViewProps> = ({
   const handleRollDice = () => {
     if (!isMyTurn || state.phase !== 'rolling') return;
 
-    const roll = Math.floor(Math.random() * 6) + 1;
+    // Roll 1 or 2 dice based on house rules
+    const diceCount = state.houseRules.diceCount;
+    let roll = Math.floor(Math.random() * 6) + 1;
+    if (diceCount === 2) {
+      roll += Math.floor(Math.random() * 6) + 1;
+    }
     const reachable = getReachableRooms(activePlayer.position, roll, state.houseRules.secretPassages);
 
     setReachableRooms(reachable);
@@ -215,9 +234,10 @@ export const GameBoardView: React.FC<GameBoardViewProps> = ({
   const handleSelectRoom = (roomId: RoomId) => {
     if (!isMyTurn || state.phase !== 'moving') return;
 
+    // Set previousPosition for animation
     const updatedPlayers = state.players.map(p => {
       if (p.id === activePlayer.id) {
-        return { ...p, position: roomId };
+        return { ...p, previousPosition: p.position, position: roomId };
       }
       return p;
     });
@@ -322,6 +342,7 @@ export const GameBoardView: React.FC<GameBoardViewProps> = ({
     setNotes(reset);
   };
 
+  // Calculate current rank for display
   const ruledOutCount = Object.entries(notes).filter(([_, s]) => s === 'eliminated' || s === 'in_hand').length;
 
   return (
